@@ -17,17 +17,17 @@ server1.get('/hello', (req, res) => {
 server2.listen(3002)
     .then(onStart)
 
-// server2.get(
-//     '/hello',
-//     (req, res, next) => {
-//         console.log('middleware1')
-//         next()
-//     },
-//     (req, res, next) => {
-//         console.log('middleware2')
-//         setTimeout(next, 500)
-//     },
-//     (req, res) => {
-//         res.send('Hola mundo!')
-//     }
-// )
+server2.get(
+    '/hello',
+    (req, res, next) => {
+        console.log('middleware 1')
+        next()
+    },
+    (req, res, next) => {
+        console.log('middleware 2')
+        setTimeout(next, 500)
+    },
+    (req, res) => {
+        res.end('Hola mundo!')
+    }
+)

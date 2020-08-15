@@ -2,14 +2,17 @@ const http = require('http')
 const {
     HTTP_METHODS
 } = require('./constants')
-const {
-    validateArg,
-    generateRouteKey
-} = require('./utilities')
+const Route = require('./Route')
 
 const routeMapKey = Symbol()
 const serverKey = Symbol()
 const handleRequestKey = Symbol()
+
+const generateRouteKey = (method, path) => {
+    const normalizedMethod = method.toLowerCase()
+
+    return [normalizedMethod, path].join('_')
+}
 
 class Server {
     constructor({
@@ -23,11 +26,17 @@ class Server {
         this[serverKey] = null
 
         HTTP_METHODS.forEach((method) => {
-            this[method] = (path, handler) => this.register({
-                method,
-                path,
-                handler
-            })
+            this[method] = (path, ...chain) => {
+                const handler = chain.pop()
+                const middlewares = chain
+
+                this.register({
+                    method,
+                    path,
+                    handler,
+                    middlewares
+                })
+            }
         })
 
         this[handleRequestKey] = this[handleRequestKey].bind(this)
@@ -36,15 +45,15 @@ class Server {
     [handleRequestKey](req, res) {
         const { method, url } = req
         const key = generateRouteKey(method, url)
-        const handler = this[routeMapKey][key]
+        const route = this[routeMapKey][key]
 
-        if (!handler) {
+        if (!route) {
             console.error(`No handler found for [${method}] "${url}"`)
 
             return
         }
 
-        handler(req, res)
+        route.execute(req, res)
     }
 
     listen(port = this.port) {
@@ -65,14 +74,12 @@ class Server {
         handler,
         middlewares = []
     } = {}) {
-        validateArg({ value: method, type: 'string', name: 'method' })
-        validateArg({ value: path, type: 'string', name: 'path' })
-        validateArg({ value: handler, type: 'function', name: 'handler' })
-        validateArg({ value: middlewares, type: 'array', name: 'middlewares' })
-
         const key = generateRouteKey(method, path)
 
-        this[routeMapKey][key] = handler
+        this[routeMapKey][key] = new Route({
+            handler,
+            middlewares
+        })
     }
 }
 
