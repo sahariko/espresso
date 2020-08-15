@@ -1,7 +1,6 @@
 module.exports = {
     extends: [
-        'eslint:recommended',
-        'plugin:react/recommended'
+        'eslint:recommended'
     ],
     root: true,
     parserOptions: {
@@ -9,13 +8,14 @@ module.exports = {
         sourceType: 'module'
     },
     env: {
-        es6: true
+        es6: true,
+        node: true
     },
     rules: {
         'no-console': 0,
         'no-var': 2,
         'prefer-const': 2,
-        semi: 2,
+        semi: [2, 'never'],
         quotes: [2, 'single']
     },
     overrides: [
